@@ -54,30 +54,16 @@ profile:
         start: "[TBD]"
         end:   "[TBD]"
       summary: |
-        FDE on Vesoko, a seller-side e-commerce platform. Shipped an
+        FDE on Vesoko, a seller-side e-commerce platform. I built an
         MCP-driven AI agent that generates product descriptions from
-        seller-uploaded product data, and a flow that posts those products
-        to Meta Ads so they reach customers.
+        seller-uploaded product data. The team also worked on a flow that
+        posts products to Meta Ads so they reach customers — that piece
+        was team work, not mine alone.
       four_questions:
-        what: |
-          Forward Deployed Engineer on Vesoko. Built an MCP-driven AI
-          agent that generates product descriptions and a Meta Ads posting
-          flow so sellers can ship product pages and ad creatives faster.
-        why: |
-          FDE put me closest to the customer and the platform at once.
-          MCP was the natural seam between the LLM and Vesoko's product
-          and inventory tools; Meta Ads was where sellers actually needed
-          distribution.
-        breaks: |
-          - Prompt-injection through seller-supplied product copy.
-          - Meta Ads API rate limits and policy rejections.
-          - Description quality variance across product categories.
-          - MCP tool-call failure modes when the inventory service is slow.
-        learned: |
-          Shipping AI features inside a real platform is a different
-          problem from building a demo. MCP is the right abstraction
-          when the LLM needs tools but you don't want a custom agent loop
-          every time.
+        what:    "[TBD — filled in plan.md from confirmed user input]"
+        why:     "[TBD — filled in plan.md from confirmed user input]"
+        breaks:  "[TBD — filled in plan.md from confirmed user input]"
+        learned: "[TBD — filled in plan.md from confirmed user input]"
       result:
         metric: |
           ~92% rise in the number of buyers on Vesoko after our team's
@@ -106,26 +92,10 @@ profile:
         occasion, and the user's existing items. The team's AI services
         were Google Vision AI and Google Gemini.
       four_questions:
-        what: |
-          Team class project in CPSC 415 "Building Cloud Native Apps."
-          Digital wardrobe app: photo upload, online wardrobe, AI-assisted
-          outfit suggestions. The team's AI services were Google Vision AI
-          and Google Gemini.
-        why: |
-          I chose DevOps depth deliberately, knowing it would be the
-          bottleneck of any cloud-native build. Working alongside two
-          engineers in adjacent layers let me focus on infrastructure
-          end-to-end.
-        breaks: |
-          - Harbor registry availability.
-          - Homelab cluster uptime.
-          - GKE config drift.
-          - Nginx config at scale.
-          - DuckDNS reliability for the public hostname.
-        learned: |
-          Cloud infrastructure end-to-end — Docker, Kubernetes (homelab
-          cluster plus GKE configs), build-and-push CI/CD pipeline to a
-          private Harbor registry, Nginx ingress, DuckDNS.
+        what:    "[TBD — filled in plan.md from confirmed user input; confirmed facts: team class project, digital wardrobe, AI integration was a teammate's work, I owned DevOps / infrastructure.]"
+        why:     "[TBD — filled in plan.md from confirmed user input]"
+        breaks:  "[TBD — filled in plan.md from confirmed user input]"
+        learned: "[TBD — filled in plan.md from confirmed user input; confirmed facts: I shipped Docker, Kubernetes (homelab cluster + GKE configs), Harbor pipeline, Nginx ingress, DuckDNS.]"
       team_results:
         pods: 14
         restarts: 0
@@ -186,7 +156,7 @@ profile:
       - "CI/CD pipeline to a private Harbor registry"
       - "Nginx ingress configuration"
       - "DuckDNS dynamic DNS"
-      - "Meta Ads integration"
+      - "Meta Ads integration — [TBD: confirm whether I personally shipped this or it was team work]"
       - "Forward Deployed Engineering practice"
     learning:
       - "Anthropic Claude API / SDK"
@@ -270,7 +240,7 @@ The rubric weights the "not yet" inventory at 15% — "real self-awareness, not 
 - **Static site:** Hugo (matches the reference) or a hand-rolled HTML/CSS/JS bundle. One page, one chatbot widget. Hosted on Vercel as the static side of a single project.
 - **Chatbot function:** Python, served from Vercel Python serverless functions (`api/chat.py`, optionally FastAPI). Reads `profile.yaml` at request time. Calls Claude through **OpenRouter** — the course's access route — using the OpenRouter API key stored in Vercel's environment variables. Model IDs are TBD at run time (resolved when the comparison is run; see §8). Streams the response back to the page.
 - **Profile data:** `profile.yaml` at the repo root. Bundled into the deployable artifact or read from the repo's deploy context.
-- **Hosting:** Vercel, single project for static + functions. Environment variables hold the Anthropic API key; the key never enters the repo.
+- **Hosting:** Vercel, single project for static + functions. Environment variables hold the OpenRouter API key; the key never enters the repo.
 
 ### 6.3 Alternatives named
 
@@ -301,12 +271,13 @@ The rubric weights the "not yet" inventory at 15% — "real self-awareness, not 
 | Alternative | Pros | Cons | When it would have won |
 |---|---|---|---|
 | **OpenAI** | Broad tooling; well-documented SDK; GPT-4o-mini vs GPT-4o is a clean cheap-vs-stronger pair. | No direct project familiarity; would be net-new SDK integration. | If the personal record needed an OpenAI credit, or if a recruiter-facing story leaned on OpenAI. |
-| **Google (Gemini)** | Familiar from Closet X (Vision AI + Gemini). Flash vs Pro is the natural pair. | Less mature SDK for chatbot-style integration; less direct match to MCP-grounded prompt discipline. | If the integration story needed to highlight Gemini specifically. |
+| **Google (Gemini)** | Flash vs Pro is the natural cheap-vs-stronger pair. | No direct project familiarity; less mature SDK for chatbot-style integration; less direct match to MCP-grounded prompt discipline. | If a non-Anthropic comparison was specifically required. |
 | **Self-hosted (e.g., Llama, Mistral)** | No API key, no vendor cost; full control. | Operational burden is far above the assignment's scope; would need GPU/host infra. | Not applicable here — the assignment explicitly puts the chatbot key in a host secret store. |
 
 ### 7.3 Rationale
 
-- Claude is the model family used by Claude Code, which is the development environment for this portfolio.
+- The FDE internship at Clasona used Anthropic's Model Context Protocol (MCP); choosing Claude for the chatbot continues the same Anthropic protocol family.
+- The reference impl at `kousenit` is Claude-based.
 - OpenRouter is the course's access route for Claude API calls — the OpenRouter API key is the secret in Vercel's environment variables; no key ever enters the repo.
 - The assignment's "cheap model vs stronger one" language maps cleanly to Haiku 4.5 vs Sonnet, resolved at run time.
 - A second model provider for the comparison would have been defensible but adds operational cost without changing the grading story.
@@ -395,14 +366,3 @@ These are the same TBDs from the intent doc, ordered by impact on this spec and 
 - `plan.md` (Oct 19) — implementation steps, project-by-project four-question answers, deployment.
 - `ANNOTATION.md` — recorded results from the comparison run, acknowledged failures.
 - `profile.yaml` — the data the chatbot reads.
-
----
-
-## 12. What I want from you (the reader of this draft)
-
-- Sanity-check the **schema in §3** against the projects. Anything missing or mis-shaped?
-- Sanity-check the **"not yet" inventory in §4** for tone. Real self-awareness, not a token entry.
-- Confirm the **comparison plan in §8** is the right shape for the assignment, or push back on what "wins" looks like.
-- Resolve any **TBD** above that's actually known.
-
-Anything else, push back here. The deadline is 1:30 PM today; this is the document we'll tag `intent-spec` at alongside `intent/portfolio.md`.

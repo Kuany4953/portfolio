@@ -18,7 +18,7 @@ The portfolio is also a graded artifact for CPSC 415 (25% of course grade) and t
 
 | Group | Weight | What they need from the site |
 |---|---|---|
-| Recruiters and hiring managers screening for SWE internships / new-grad roles | ~80% | A fast read on what I've shipped, what I can do, and whether to interview me. The chatbot should answer the "should we work together?" question in their voice. |
+| Recruiters and hiring managers screening for SWE internships / new-grad roles | ~80% | A fast read on what I've shipped, what I can do, and whether to interview me. The chatbot should answer the recruiter's "should we work together?" question honestly, from my profile. |
 | Prof. Ken Kousen (CPSC 415 grader) | ~20% | Evidence in the repo: the artifact chain, profile honesty, the grounding prompt, and the adversarial test results. He reads the repo more than the site. |
 | Personal record | secondary | A durable, honest account of what I actually shipped, regardless of audience. |
 
@@ -55,13 +55,13 @@ The answers are drafted below at the level this intent doc needs. They will be t
 
 ### 4.1 Clasona / Vesoko — Forward Deployed Engineer internship
 
-**What is this?** FDE on Vesoko, a seller-side e-commerce platform. I built an MCP-driven AI agent that generates product descriptions from seller-uploaded product data, and a flow that posts those products to Meta Ads so they reach customers.
+**What is this?** FDE on Vesoko, a seller-side e-commerce platform. I built an MCP-driven AI agent that generates product descriptions from seller-uploaded product data. The team worked on a flow that posts products to Meta Ads so they reach customers — that piece was team work, not mine alone.
 
-**Why this choice?** FDE was the role that put me closest to the customer and the platform simultaneously; MCP was the natural seam between the LLM and Vesoko's product/inventory tools; Meta Ads was where sellers actually needed distribution. `[TBD: refine for the four-question annotation]`
+**Why this choice?** `[TBD — filled in plan.md from confirmed user input]`
 
-**What breaks?** `[TBD: list — likely candidates: prompt-injection through seller-supplied product copy, Meta Ads API rate limits / policy rejections, description quality variance, MCP tool-call failure modes]`
+**What breaks?** `[TBD — filled in plan.md from confirmed user input]`
 
-**What did I learn?** `[TBD: refine — candidate: shipping AI features inside a real platform is a different problem from building a demo; MCP is the right abstraction when the LLM needs tools but you don't want to write a custom agent loop every time.]`
+**What did I learn?** `[TBD — filled in plan.md from confirmed user input]`
 
 **Result to cite:** ~92% rise in the number of buyers on Vesoko after our team's implementations shipped. The AI description generator and the Meta Ads integration were major contributors, but the rise covers the team's full scope of work, not just those two flows alone. `[TBD for spec.md: spell out the baseline (pre-implementation vs. post-implementation) and the measurement window — the recruiter-facing version of this claim has to be precise.]`
 
@@ -77,13 +77,13 @@ The answers are drafted below at the level this intent doc needs. They will be t
 
 **Status:** not currently live. Repo: https://github.com/HannaSaffi/Closet-X — link only. The repo is owned by a teammate, not by me.
 
-**1. What is this?** A digital wardrobe app built as a team class project. Users upload photos; the app builds an online wardrobe; an AI assistant suggests outfits from weather, occasion, and the user's existing items. The team's AI services were Google Vision AI and Google Gemini — I did not do the AI integration.
+**1. What is this?** `[TBD — filled in plan.md from confirmed user input; confirmed facts: team class project, digital wardrobe, AI integration was a teammate's work, I owned DevOps / infrastructure.]`
 
-**2. Why this choice?** `[TBD: refine — candidate: I chose DevOps depth deliberately, knowing it would be the bottleneck of any cloud-native build. Working alongside two strong engineers in adjacent layers let me focus on infrastructure end-to-end.]`
+**2. Why this choice?** `[TBD — filled in plan.md from confirmed user input]`
 
-**3. What breaks?** `[TBD: list — likely candidates: Harbor registry availability, homelab cluster uptime, GKE config drift, Nginx config at scale, DuckDNS reliability]`
+**3. What breaks?** `[TBD — filled in plan.md from confirmed user input]`
 
-**4. What did I learn?** Cloud infrastructure end-to-end — Docker, Kubernetes (homelab cluster + GKE configs), build-and-push CI/CD pipeline to a private Harbor registry, Nginx ingress, DuckDNS. The team-level outcome of the deployment: 14 pods, 0 restarts, 8 images. I own the DevOps piece; the team-level result is the team's, not mine alone.
+**4. What did I learn?** `[TBD — filled in plan.md from confirmed user input; confirmed facts: I shipped Docker, Kubernetes (homelab cluster + GKE configs), Harbor pipeline, Nginx ingress, DuckDNS.]`
 
 **What I specifically shipped:** Docker containerization of the 8 services; Kubernetes deployment to a homelab cluster (plus GKE configs); the build-and-push pipeline to a private Harbor registry; Nginx ingress; DuckDNS.
 
@@ -199,11 +199,11 @@ Recorded results, with **failures acknowledged even if unresolved** — the rubr
 
 The chatbot is the actual interface. The site exists to host it and to look credible when a recruiter clicks the link.
 
-**Rough direction** (final in `spec.md`):
-- Static site + serverless chatbot function, or
-- Light Python (FastAPI) backend with a simple HTML/JS frontend.
+**Direction** (decided in `spec.md`):
+- Language: Python — see `spec.md` §5 for rationale.
+- Stack: static site + Python serverless function on Vercel — see `spec.md` §6 for rationale.
 
-Python is the likely pick given Closet X (OpenAI API) experience. The reference impl uses Cloudflare Pages; that is one option, not a mandate.
+Closet X is **not** the source of any tech choice here: the project used Google Vision AI + Gemini, and the AI work on it was a teammate's, not mine.
 
 **What the site must do:** deploy, work, be accessible. 10% of grade — the rest of the grade is what's *behind* the site.
 
@@ -239,8 +239,8 @@ Things that need to be resolved before `spec.md` (Oct 5) or `plan.md` (Oct 19), 
 3. **CPSC 415 Week 1 improvement.** Recover from git history.
 4. **CPSC 415 Week 2 language.** Java or Python — pick one.
 5. **Mobile "not yet" rationale.** One sentence on why I haven't prioritized mobile.
-6. **Profile format.** YAML or JSON — final pick in `spec.md`.
-7. **Tech stack for the chatbot and site.** Final pick in `spec.md`, with cheap-vs-stronger model comparison.
+6. ~~**Profile format.**~~ **Resolved in `spec.md` §3: YAML.**
+7. ~~**Tech stack for the chatbot and site.**~~ **Resolved in `spec.md` §6: static site + Python serverless function on Vercel.**
 
 ---
 
@@ -254,12 +254,3 @@ Things that need to be resolved before `spec.md` (Oct 5) or `plan.md` (Oct 19), 
 | **Mon Nov 30** | Adversarial test set run, results recorded, failures acknowledged. Site deployed. |
 | **Mon Dec 14, 1:30 PM** | Tag `portfolio-final`. Repo URL + deployed URL submitted. |
 | **Dec 17–23** | Comprehension Defense (15%). In person. |
-
----
-
-## 14. What I want from you (the reader of this draft)
-
-- Skim the **"not yet" inventory** for tone. Too defensive? Too braggy? Real self-awareness is the rubric.
-- Flag any **TBD** above that is actually known and I just didn't surface in the interview.
-
-Anything else, push back here. The deadline is 1:30 PM tomorrow; this is the document we'll tag `intent-spec` at.
