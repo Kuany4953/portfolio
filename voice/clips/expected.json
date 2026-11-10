@@ -1,0 +1,4 @@
+[
+  {"file": "mine-01.wav", "text": "Did Kuany Kuany build the AI agent for Vesoko at Clasona?", "must_contain": ["Kuany", "Vesoko", "Clasona"]},
+  {"file": "mine-02.wav", "text": "Kuany led a team of 50 engineers at Clasona for CPSC 415, right?", "must_contain": ["Kuany", "50", "CPSC 415"]}
+]
