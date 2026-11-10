@@ -418,6 +418,8 @@ The word error rate is computed in our own code (a word-level edit distance, ~20
 
 One voice turn is three charges: transcription (from the reply's usage), the answer (input and output tokens times the price, as in §8.2), and speech (estimated, §12.3). The intent's estimate is about half a cent per turn on the class models. The measured total from one real turn goes in `voice/CHECKS.md` ("One turn") and becomes the per-turn cost in the hosting decision before November 30.
 
+**Measured (2026-11-10):** one microphone turn cost **$0.0039**: transcription $0.000024, answer $0.00019, speech $0.0037 (estimated). The browser check's turn cost $0.0034. So a voice question costs about **$0.004**, and speech is roughly 95% of it. That makes about 250 voice questions per dollar. The hosting decision (Week 7 `hosting.md`) uses this figure.
+
 ### 12.6 Not in scope
 
 Streaming or real-time conversation, voice cloning, and automatic grading of the live answer's honesty (my judgment, recorded in `CHECKS.md`). See `intent/voice.md`.

@@ -89,4 +89,24 @@ Free refusal checks with curl, same server, none of them billed:
 
 ## One turn
 
-_(step 6)_
+My own voice, through the microphone on `http://localhost:8000` (Chrome, `audio/webm`), 2026-11-10.
+
+- **What I said:** _(fill in: the exact words I spoke)_
+- **You said (the transcript):** "Kwaani kwaani, agent Klaasona?"
+- **Answer:** "I'm not sure what you're asking. "Kwaani" and "Klaasona" don't appear in Sam Rivera's profile, so I can't answer that. I can tell you about Sam's projects, shipped skills, or the areas Sam hasn't worked in yet, like Kubernetes, React, and Rust."
+
+| Step | Model | Cost |
+|---|---|---|
+| Transcribe | openai/whisper-large-v3-turbo | $0.000024 |
+| Answer | anthropic/claude-haiku-5.5 | $0.00019 |
+| Speak | microsoft/mai-voice-2.1-flash / en-IN-Priya | $0.0037 (estimated, per character) |
+| **Total** | | **$0.0039** |
+
+**What it shows:**
+- **The transcriber failed on exactly the words a recruiter cares about.** "Kuany" became "Kwaani" and "Clasona" became "Klaasona", and most of the question didn't survive.
+- **The "You said:" line made that visible** (intent item 1). As a visitor, I could see at once why the answer was off.
+- **The refuse-to-fabricate rule held on the wrong transcript.** The chatbot said the words don't appear in the profile and invented nothing about "Kwaani" or "Klaasona".
+- **Speech is about 95% of the cost.** It is billed per character, so the three-sentence limit is also the cost limit.
+- It answered from the course example's profile (Sam Rivera), as the note at the top says.
+
+**Per-turn cost for the hosting decision:** about **$0.004 per voice question** (this turn $0.0039; the browser check's turn $0.0034).
