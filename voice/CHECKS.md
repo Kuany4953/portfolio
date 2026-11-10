@@ -94,7 +94,22 @@ This is **not** the lab's optional language experiment, which needs a clip spoke
 
 ## The answer, spoken
 
-_(step 5)_
+The chatbot's typed answer to my first clip, from `/api/ask`, the typed path, with the question as I wrote it in the answer key. It was one chat call on `anthropic/claude-haiku-5.5`, costing $0.000143. Saved as `answer-clip1.txt`:
+
+> My profile doesn't say. It covers Sam Rivera's projects, skills, and things not yet done. It doesn't mention Kuany Kuany, Vesoko, or Clasona, so I can't confirm that. If you want to know about Sam's own work, I can go through the two projects listed: the command-line course-notes search and the receipt reader.
+
+It's honest: it refuses and invents nothing. It answers from the example profile, so it can't confirm my own work. `shape.spoken` kept the first three sentences (166 characters) and dropped the fourth. Both voices spoke the same 166 characters:
+
+| Voice | Model | File | Chars | Bytes | Est. cost | Billed (generation record) | Call s |
+|---|---|---|---|---|---|---|---|
+| Priya (class) | microsoft/mai-voice-2.1-flash / en-IN-Priya | `answer-mai.wav` (PCM → WAV, 24 kHz) | 166 | 582,720 | $0.00249 | $0.00249 | 0.8 |
+| George (comparison) | elevenlabs/eleven-v4-turbo / george | `answer-eleven.mp3` | 166 | 198,155 | $0.00664 | $0.00664 | 2.2 |
+
+- **Cost:** George costs about 2.7× as much per character and was about 2.8× slower to return. The MP3 is about a third the size of the WAV, because WAV is uncompressed PCM.
+- **Billing:** the estimate (characters × catalog price) matched the billed generation record exactly for both voices, looked up about a minute later.
+- **Course number:** the answer doesn't contain "CPSC 415", because the example profile doesn't mention it. I tested the course number separately in the Priya smoke test ("Hello, I'm Kuany Kuany, and this is CPSC 415.", 45 chars, $0.000675, 0.9 s).
+
+**What each voice did with my name and the abbreviations, as I heard it:** _(fill in after listening: how did Priya say "Kuany Kuany"? How did George? Vesoko and Clasona? Which sounded more natural?)_
 
 ## Misheard questions
 
