@@ -36,7 +36,7 @@ Each step follows the same pattern: write the tests, run them and watch them fai
 3. **Transcriber:** `transcribe.py`. Dry-run it on the course clips with no key, to confirm it fails cleanly with "no key". Then do one billed run per model.
 4. **My own clips:** I record two clips, 5–10 s each, as WAV. One is a question the profile answers and one is a question it can't. **I write `expected.json` before the first transcription.** Then both models run on all five clips, and the results go in `CHECKS.md`. I listen to the clips myself. Commit: *Voice: own clips transcribed on two models.*
 5. **Speaker:** `speak.py`. Speak the first clip's answer in both voices and record the numbers and what I heard. Commit: *Voice: the answer spoken, two voices.*
-5a. **Misheard questions:** send the three hand-written misheard questions through the answer function once each, and record and judge the answers in `CHECKS.md`.
+5a. **(Skipped for time at submission; see CHECKS.md.) Misheard questions:** send the three hand-written misheard questions through the answer function once each, and record and judge the answers in `CHECKS.md`.
 6. **Loop:** `api/voice.py`, the recorder on the page, `test_browser.py` (one of its assertions is that "You said: …" shows the transcript), and one real turn by microphone. The One turn section goes in `CHECKS.md`. Commit, tag `week07-submitted`, push.
 
 ### Risks

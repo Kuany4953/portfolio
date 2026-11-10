@@ -113,7 +113,11 @@ It's honest: it refuses and invents nothing. It answers from the example profile
 
 ## Misheard questions
 
-_(step 5a)_
+**Not run.** Plan step 5a was skipped for time before submission. The live microphone turn and the browser check give partial evidence of what this step was meant to test. In both, a misheard word reached the chatbot ("Kwaani", "Klaasona", "Music"), and in both it refused rather than invent anything about it. The three hand-written misheard questions in `plan.md` are still to do.
+
+## Extra billed runs
+
+- On 2026-11-10, during the pre-submission check, `pytest voice` ran `test_browser.py` once more, because the local server was still up. That was one extra voice turn (≈ $0.0035). The no-key suite is `pytest voice/tests`. `test_browser.py` skips only when no server is running, so it should be run on purpose.
 
 ## Browser check
 
