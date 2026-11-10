@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kuany Kuany — ask by voice</title>
+<style>
+  :root { --fg:#1b1f24; --muted:#5b6470; --bg:#fff; --panel:#f3f5f7; --accent:#0b5cad; --rec:#c62828; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#e6e8eb; --muted:#9aa3ad; --bg:#14171a; --panel:#1f2428; --accent:#6aa8ff; --rec:#ef5350; } }
+  body { font: 18px/1.45 system-ui, sans-serif; color: var(--fg); background: var(--bg); max-width: 42rem; margin: 2.5rem auto; padding: 0 16px; }
+  h1 { font-size: 1.6rem; margin-bottom: .25rem; }
+  p.lede { color: var(--muted); margin-top: 0; }
+  button { font: inherit; padding: .55rem 1.1rem; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--accent); }
+  #rec[data-on="1"] { background: var(--rec); border-color: var(--rec); }
+  .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: 1rem 0; }
+  input[type=text] { font: inherit; padding: .5rem; flex: 1 1 16rem; min-width: 0; border: 1px solid var(--muted); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  #out { background: var(--panel); padding: 1rem; border-radius: 6px; white-space: pre-wrap; min-height: 3rem; }
+  .small { color: var(--muted); font-size: .9em; }
+</style>
+<h1>Ask about Kuany Kuany</h1>
+<p class="lede">Ask a question out loud. The browser sends only the recording; the server transcribes it,
+answers from the profile, and speaks the answer back. Recording stops by itself after 15 seconds.</p>
+
+<div class="row">
+  <button id="rec">Start recording</button>
+  <span class="small" id="timer"></span>
+</div>
+<div class="row small">
+  Or upload a clip: <input id="file" type="file" accept="audio/*"> <button id="send" class="secondary">Ask</button>
+</div>
+<div class="row">
+  <input id="q" type="text" placeholder="Or type a question"> <button id="askText" class="secondary">Ask by text</button>
+</div>
+
+<div id="out" aria-live="polite"></div>
+<audio id="player" controls hidden></audio>
+
+<script>
+const out = document.getElementById("out"), player = document.getElementById("player");
+const rec = document.getElementById("rec"), timer = document.getElementById("timer");
+const LIMIT_MS = 15000;
+
+async function post(path, body, type) {
+  out.textContent = "…";
+  const res = await fetch(path, { method: "POST", headers: type ? { "Content-Type": type } : {}, body });
+  show(await res.json(), res.status);
+}
+
+function show(d, status) {
+  if (status !== 200) { out.textContent = `Error ${status}: ${d.error}`; return; }
+  const c = d.costs || {}, f = x => (x == null ? "?" : "$" + Number(x).toPrecision(2));
+  const err = d.speak_error ? `\n\n(speech failed: ${d.speak_error})` : "";
+  out.textContent = `You said: ${d.transcript || "(nothing)"}\n\nAnswer: ${d.answer}\n\n` +
+    `[transcribe ${f(c.transcribe)} · answer ${f(c.answer)} · speak ${f(c.speak)} · total ${f(c.total)}]${err}`;
+  if (d.audio) { player.src = "data:audio/mpeg;base64," + d.audio; player.hidden = false; player.play().catch(() => {}); }
+}
+
+// Click to start, click to stop; stops by itself at 15 s.
+let recorder = null, chunks = [], stopTimer = null, tick = null;
+async function start() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const type = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";   // Safari picks audio/mp4
+  recorder = new MediaRecorder(stream, type ? { mimeType: type } : {});
+  chunks = [];
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = () => {
+    stream.getTracks().forEach(t => t.stop());
+    const mime = (recorder.mimeType || "audio/webm").split(";")[0];
+    post("/api/voice", new Blob(chunks, { type: mime }), mime);
+  };
+  recorder.start();
+  const t0 = Date.now();
+  rec.dataset.on = "1"; rec.textContent = "Stop and send";
+  tick = setInterval(() => { timer.textContent = `${Math.ceil((LIMIT_MS - (Date.now() - t0)) / 1000)} s left`; }, 250);
+  stopTimer = setTimeout(stop, LIMIT_MS);
+}
+function stop() {
+  clearTimeout(stopTimer); clearInterval(tick); timer.textContent = "";
+  if (recorder && recorder.state === "recording") recorder.stop();
+  rec.dataset.on = ""; rec.textContent = "Start recording";
+}
+rec.onclick = () => (recorder && recorder.state === "recording" ? stop() : start().catch(e => { out.textContent = "Microphone: " + e.message; }));
+
+// Fallback: a file the visitor picked, sent with its own type.
+document.getElementById("send").onclick = () => {
+  const f = document.getElementById("file").files[0];
+  if (f) post("/api/voice", f, f.type || "audio/wav");
+};
+document.getElementById("askText").onclick = () => {
+  const q = document.getElementById("q").value.trim();
+  if (q) post("/api/ask", q, "text/plain");
+};
+</script>
+</html>

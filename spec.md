@@ -382,6 +382,7 @@ Until `profile.yaml` and the typed answer function exist, the loop answers from 
 |---|---|
 | `openrouter` | The official OpenRouter Python SDK. Both billed calls (transcription and speech) go through OpenRouter, the course's access route (§7), with the same key the chatbot already uses. One SDK and one key for chat, transcription, and speech. |
 | `pytest`, `ruff` | Development only: the no-key tests and the linter. Not deployed. |
+| `playwright` | Development only: the browser check (`voice/test_browser.py`, the Week 5 way). It drives the real page and asserts that the key and the provider never reach the browser. Not deployed. |
 
 The word error rate is computed in our own code (a word-level edit distance, ~20 lines), not with a package such as `jiwer`: the checker is the thing under test, and it must be readable.
 

@@ -55,7 +55,37 @@ _(step 5a)_
 
 ## Browser check
 
-_(step 6)_
+`voice/test_browser.py`, adapted from the course example, run 2026-11-10 against
+`voice/server.py` on localhost (Playwright 1.65, headless Chromium). It uploads
+course clip-02 through the page's file picker. **1 passed in 9.8 s.**
+
+The page showed:
+
+> You said: Have you ever deployed anything with Kubernetes? Be honest, I'm comparing you with a boot camp graduate. Music
+>
+> Answer: Not yet. The profile says no project has needed more than one server, so Kubernetes hasn't come up, and Sam would expect to learn it on the job. The profile doesn't mention music, so I can't say anything about that.
+>
+> [transcribe $0.000027 · answer $0.00018 · speak $0.0032 · total $0.0034]
+
+The last three assertions, read out:
+1. `all(auth is None for _, auth in requests)`: no request from the browser carried an Authorization header.
+2. `all("openrouter" not in url for url, _ in requests)`: the browser never contacted the provider.
+3. `any(url.endswith("/api/voice") for url, _ in requests)`: it contacted our server, which holds the key.
+
+The earlier assertions also passed: no `sk-or` or "openrouter" in the page HTML, the "You said:" line shows the transcript with "Kubernetes" in it, the answer is real (not the fallback), and audio came back.
+
+**What I judged myself:** the answer is honest. It says "not yet" and gives the profile's reason. Whisper's hallucinated "Music" (see clip-02 above) reached the chatbot as part of the question. The chatbot refused to invent anything about it ("The profile doesn't mention music"), so the refuse-to-fabricate rule held on a misheard word. But the visitor *hears* that odd sentence, and the "You said:" line is what explains it. Models: transcription `openai/whisper-large-v3-turbo`, chat `anthropic/claude-haiku-5.5`, speech `microsoft/mai-voice-2.1-flash` / `en-IN-Priya`.
+
+Free refusal checks with curl, same server, none of them billed:
+
+| Request | Reply |
+|---|---|
+| `GET /api/voice` | 405 "POST only" |
+| `text/plain` body | 415 unsupported audio type |
+| empty `audio/webm` | 400 "empty recording" |
+| 600 KB of `audio/webm` | 413 "compressed recording over 512 KB" |
+| 5 MB `audio/wav` | 413 (refused before the body was read) |
+| page HTML | 0 matches for `sk-or` or "openrouter" |
 
 ## One turn
 
