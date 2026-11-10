@@ -16,7 +16,30 @@
 
 ## Transcripts: per clip per model
 
-_(step 4)_
+### Course clips (spoken by a model, the baseline)
+
+Run 2026-11-10, one call per clip per model. The answer key is the course's
+`examples/voice-loop/clips/expected.json`, used as is. Files:
+`transcripts-course-whisper.json`, `transcripts-course-scribe.json`.
+
+| Clip | Model | WER | Tolerance | Missing | Audio s | Cost | Call s | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| clip-01 | whisper-large-v3-turbo | 0.000 | 0.15 | none | 6.38 | $0.0000212 | 1.2 | ok |
+| clip-01 | scribe-v2 | 0.000 | 0.15 | none | 6.38 | $0.000390 | 0.8 | ok |
+| clip-02 | whisper-large-v3-turbo | 0.176 | 0.20* | none | 8.06 | $0.0000268 | 0.6 | ok |
+| clip-02 | scribe-v2 | 0.118 | 0.20* | none | 8.06 | $0.000493 | 0.9 | ok |
+| clip-03 | whisper-large-v3-turbo | 0.000 | 0.15 | none | 7.71 | $0.0000257 | 0.7 | ok |
+| clip-03 | scribe-v2 | 0.000 | 0.15 | none | 7.71 | $0.000471 | 0.7 | ok |
+
+\* The course key raises clip-02 to 0.20, with a note explaining why.
+
+- **Totals:** Whisper $0.00007 for 3 clips, Scribe $0.00135, so Scribe costs about 19× as much per audio second.
+- **clip-02:** both models split "bootcamp" into "boot camp". The must-survive check still passes, because spacing doesn't count. Whisper also added "Music" after the last word, which is the hallucination on trailing silence that the course key's note describes, reproduced here. That makes 3 edits in 17 words for Whisper. Scribe didn't add anything.
+- "CPSC 415" survived on both models on clip-03, written as digits.
+
+### My own clips
+
+_(step 4: waiting for my recordings and my `expected.json`)_
 
 ## Which model got my name right
 
