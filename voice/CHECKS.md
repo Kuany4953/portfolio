@@ -37,13 +37,51 @@ Run 2026-11-10, one call per clip per model. The answer key is the course's
 - **clip-02:** both models split "bootcamp" into "boot camp". The must-survive check still passes, because spacing doesn't count. Whisper also added "Music" after the last word, which is the hallucination on trailing silence that the course key's note describes, reproduced here. That makes 3 edits in 17 words for Whisper. Scribe didn't add anything.
 - "CPSC 415" survived on both models on clip-03, written as digits.
 
-### My own clips
+### My own clips (my voice, recorded in Voice Memos, converted to 16 kHz mono WAV)
 
-_(step 4: waiting for my recordings and my `expected.json`)_
+I wrote the answer key and committed it (`237076f`) before any model heard these clips. Tolerance 0.15. Files: `transcripts-whisper.json`, `transcripts-scribe.json`, `transcripts-whisper-en.json`.
+
+| Clip | Model | WER | Missing | Audio s | Cost | Call s | Verdict |
+|---|---|---|---|---|---|---|---|
+| mine-01 | whisper-large-v3-turbo | 0.818 | Kuany, Vesoko, Clasona | 7.66 | $0.0000255 | 0.9 | FAIL |
+| mine-01 | scribe-v2 | 0.545 | Kuany, Vesoko, Clasona | 7.66 | $0.000468 | 1.9 | FAIL |
+| mine-02 | whisper-large-v3-turbo | 0.615 | Kuany, CPSC 415 | 10.35 | $0.0000344 | 0.5 | FAIL |
+| mine-02 | scribe-v2 | 0.154 | Kuany | 10.35 | $0.000632 | 1.4 | FAIL |
+
+What each model wrote:
+
+| Clip | What I said | Whisper | Scribe |
+|---|---|---|---|
+| mine-01 | Did Kuany Kuany build the AI agent for Vesoko at Clasona? | "Dit kwane kwane. the old AI agent Viseko Klaasona" | "Did Kwanikwani be all AI agent for Veseko at Klasona?" |
+| mine-02 | Kuany led a team of 50 engineers at Clasona for CPSC 415, right? | "Kåre ni lære dig tem. 50 engineers at klasstorne for CPSC 4.15, right?" | "Kwan led a team of 50 engineers at Glassona for CPSC 415, right?" |
+
+**All four transcripts fail.** On the course clips, which a model spoke, every transcript passed. On my voice, every one failed. That gap is why the lab asks for a person's voice.
+
+- **Scribe is closer on every clip,** at about 18× the cost. On mine-02 it got everything except my name: "50" as digits, "CPSC 415" as digits, and the rest of the sentence word for word. It still turned "Clasona" into "Glassona", which isn't a must-survive word in that clip, so it counts only toward the WER (0.154, just over 0.15).
+- **Whisper detected the wrong language on mine-02.** It started in Danish or Norwegian ("Kåre ni lære dig tem") and turned "CPSC 415" into "4.15", so the number survived as the wrong number.
+- **Neither model ever wrote "Kuany".** The closest attempts were Whisper's "kwane", Scribe's "Kwanikwani" and "Kwan", and the microphone turn's "Kwaani".
+
+### Language experiment: Whisper with `--language en`
+
+I re-ran Whisper on my two clips with the English hint (2 calls, $0.00006), because of the Danish misdetection above.
+
+| Clip | WER without hint | WER with `--language en` | With the hint, Whisper wrote |
+|---|---|---|---|
+| mine-01 | 0.818 | 0.818 | "Did Kwan Kwan the old AI agent physical That's cool, right?" |
+| mine-02 | 0.615 | 0.769 | "Kwanileta team. about 50 engineers at class hall now Well... CPSC. 4:15, right?" |
+
+**What changed:**
+- The hint stopped the Danish, but the transcripts didn't improve, and on mine-02 the WER got worse.
+- With the hint, Whisper **invented words I never said**: "That's cool, right?" and "Well...". It also turned "415" into a clock time, "4:15".
+- A language hint isn't a fix for a name the model has never heard. Scribe, without any hint, was better than both Whisper runs.
 
 ## Which model got my name right
 
-_(step 4)_
+**Neither.** On every clip, and on the live microphone turn, "Kuany" came back as something else: kwane, Kwan Kwan, Kwanikwani, Kwan, Kwaani, Kåre. **Scribe got my numbers right** ("50", "CPSC 415") on mine-02. **Whisper got "50" right but turned 415 into 4.15 or 4:15.**
+
+**What I heard when I played the clips myself:** _(fill in: after `afplay clips/mine-01.wav` and `clips/mine-02.wav`, did I say every word clearly? Which transcript is closer to what I hear?)_
+
+**What this means for the site:** a visitor who says my name will usually be transcribed wrong. The chatbot must not treat "Kwan" as a different person, and must not invent anything about a misheard name. The live turn shows it refusing rather than inventing. The "You said:" line is what lets the visitor see the problem. When my own profile goes in, the grounding prompt should say that a close misspelling of "Kuany" in a question is about me.
 
 ## The answer, spoken
 

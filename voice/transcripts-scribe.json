@@ -1,0 +1,36 @@
+[
+  {
+    "text": "Did Kwanikwani be all AI agent for Veseko at Klasona?",
+    "model": "elevenlabs/scribe-v2",
+    "audio_seconds": 7.6573125,
+    "cost": 0.0004679468749999149,
+    "seconds": 1.9,
+    "file": "mine-01.wav",
+    "check": {
+      "wer": 0.5454545454545454,
+      "missing": [
+        "Kuany",
+        "Vesoko",
+        "Clasona"
+      ],
+      "empty": false,
+      "passed": false
+    }
+  },
+  {
+    "text": "Kwan led a team of 50 engineers at Glassona for CPSC 415, right?",
+    "model": "elevenlabs/scribe-v2",
+    "audio_seconds": 10.3453125,
+    "cost": 0.0006322135416665517,
+    "seconds": 1.4,
+    "file": "mine-02.wav",
+    "check": {
+      "wer": 0.15384615384615385,
+      "missing": [
+        "Kuany"
+      ],
+      "empty": false,
+      "passed": false
+    }
+  }
+]

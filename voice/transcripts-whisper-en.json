@@ -1,0 +1,37 @@
+[
+  {
+    "text": " Did Kwan Kwan  the old AI agent  physical  That's cool, right?",
+    "model": "openai/whisper-large-v3-turbo",
+    "audio_seconds": 7.657,
+    "cost": 2.549781e-05,
+    "seconds": 0.4,
+    "file": "mine-01.wav",
+    "check": {
+      "wer": 0.8181818181818182,
+      "missing": [
+        "Kuany",
+        "Vesoko",
+        "Clasona"
+      ],
+      "empty": false,
+      "passed": false
+    }
+  },
+  {
+    "text": " Kwanileta team.  about 50 engineers at class hall now  Well...  CPSC.  4:15, right?",
+    "model": "openai/whisper-large-v3-turbo",
+    "audio_seconds": 10.345,
+    "cost": 3.444885e-05,
+    "seconds": 0.4,
+    "file": "mine-02.wav",
+    "check": {
+      "wer": 0.7692307692307693,
+      "missing": [
+        "Kuany",
+        "CPSC 415"
+      ],
+      "empty": false,
+      "passed": false
+    }
+  }
+]
