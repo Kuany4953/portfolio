@@ -85,3 +85,12 @@ def test_audio_bytes_labelled_json_are_rejected():
 @pytest.mark.parametrize("ctype,data", [(None, WAV), ("audio/wav", b""), ("audio/wav", None)])
 def test_missing_type_or_body_is_rejected(ctype, data):
     assert not is_audio(ctype, data)
+
+
+def test_raw_pcm_has_no_header_and_is_accepted():
+    assert is_audio("audio/pcm;rate=24000;channels=1", b"\x01\x00\xfe\xff" * 100)
+
+
+@pytest.mark.parametrize("body", [JSON, b"<html>error</html>"])
+def test_text_labelled_pcm_is_rejected(body):
+    assert not is_audio("audio/pcm;rate=24000", body)

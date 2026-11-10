@@ -27,8 +27,11 @@ def is_audio(content_type: str | None, data: bytes | None) -> bool:
     """True only if the reply is labelled audio and its bytes start with an audio header."""
     if not content_type or not data:
         return False
-    if not content_type.split(";")[0].strip().lower().startswith("audio/"):
+    kind = content_type.split(";")[0].strip().lower()
+    if not kind.startswith("audio/"):
         return False
+    if kind in ("audio/pcm", "audio/l16"):       # raw samples have no header; refuse text bodies
+        return data.lstrip()[:1] not in (b"{", b"[", b"<")
     wav = data[:4] == b"RIFF" and data[8:12] == b"WAVE"
     id3 = data[:3] == b"ID3"
     mpeg_sync = len(data) >= 2 and data[0] == 0xFF and (data[1] & 0xE0) == 0xE0
