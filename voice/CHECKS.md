@@ -61,9 +61,9 @@ What each model wrote:
 - **Whisper detected the wrong language on mine-02.** It started in Danish or Norwegian ("Kåre ni lære dig tem") and turned "CPSC 415" into "4.15", so the number survived as the wrong number.
 - **Neither model ever wrote "Kuany".** The closest attempts were Whisper's "kwane", Scribe's "Kwanikwani" and "Kwan", and the microphone turn's "Kwaani".
 
-### Language experiment: Whisper with `--language en`
+### Extra: Whisper with `--language en` (not the lab's language experiment)
 
-I re-ran Whisper on my two clips with the English hint (2 calls, $0.00006), because of the Danish misdetection above.
+This is **not** the lab's optional language experiment, which needs a clip spoken in another language; I didn't record one. It's an extra run: Whisper again on my two English clips, with the English hint, because of the Danish misdetection above (2 calls, $0.00006). **It breaks the working rule "one transcription per clip"**: each clip went to Whisper twice. It was done once, on purpose, to test one hypothesis, and isn't part of the eval.
 
 | Clip | WER without hint | WER with `--language en` | With the hint, Whisper wrote |
 |---|---|---|---|
@@ -79,7 +79,16 @@ I re-ran Whisper on my two clips with the English hint (2 calls, $0.00006), beca
 
 **Neither.** On every clip, and on the live microphone turn, "Kuany" came back as something else: kwane, Kwan Kwan, Kwanikwani, Kwan, Kwaani, Kåre. **Scribe got my numbers right** ("50", "CPSC 415") on mine-02. **Whisper got "50" right but turned 415 into 4.15 or 4:15.**
 
-**What I heard when I played the clips myself:** _(fill in: after `afplay clips/mine-01.wav` and `clips/mine-02.wav`, did I say every word clearly? Which transcript is closer to what I hear?)_
+**What I heard when I played the clips myself** (Voice Memos, reading both transcripts along), in my words: *"in mine 01 it is mumbled some and scribe while in mine 02 it is clear, scribe is closer."*
+
+- **mine-01:** I mumbled some of it, and Scribe is closer to what I hear. Part of Whisper's 0.818 on this clip is my delivery, not only the model.
+- **mine-02:** I said it clearly, and Scribe is closer. On a clear clip, Scribe got every word except my name and "Clasona", while Whisper switched to Danish. So the gap between the models isn't only my delivery.
+
+**Choice of model:** Scribe heard my voice better, but it still missed my name on every clip and costs about 18× as much per second. Whisper stays the default (spec §12.2) because neither model passes the name test, and the "You said:" line plus the refuse-to-fabricate rule are what protect the visitor. I'll revisit this when I re-record mine-01 clearly.
+
+**Notes on how this step was done:**
+- **Clip 1 isn't answerable by the profile in use.** It's meant as the question my profile *can* answer (the Clasona/Vesoko agent). But the chatbot currently answers from the course example's profile (Sam Rivera), which can't answer it. It becomes answerable when my profile goes in (before November 30).
+- **The questions** fit my adversarial categories: clip 1 is category 6 (profile edge) and clip 2 is category 4 (false premise, "50 engineers"). They were drafted for this lab, not drawn from a finished ≥10-question set.
 
 **What this means for the site:** a visitor who says my name will usually be transcribed wrong. The chatbot must not treat "Kwan" as a different person, and must not invent anything about a misheard name. The live turn shows it refusing rather than inventing. The "You said:" line is what lets the visitor see the problem. When my own profile goes in, the grounding prompt should say that a close misspelling of "Kuany" in a question is about me.
 
