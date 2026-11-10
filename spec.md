@@ -366,3 +366,57 @@ These are the same TBDs from the intent doc, ordered by impact on this spec and 
 - `plan.md` (Oct 19) — implementation steps, project-by-project four-question answers, deployment.
 - `ANNOTATION.md` — recorded results from the comparison run, acknowledged failures.
 - `profile.yaml` — the data the chatbot reads.
+- `intent/voice.md` — the Week 7 spoken interface (§12).
+
+---
+
+## 12. Week 7: spoken interface
+
+Source: `intent/voice.md` (approved). A visitor asks a question out loud; the server transcribes it, answers it through the same answer function as the typed chatbot, and speaks the answer back. Everything lives in `voice/`; the HTTP route is `api/voice.py` next to `api/chat.py` (§6.2).
+
+Until `profile.yaml` and the typed answer function exist, the loop answers from the course example's `profile.json` and answer step (`examples/voice-loop/`). `voice/CHECKS.md` says so, and my own are swapped in before November 30.
+
+### 12.1 Dependencies
+
+| Package | Reason |
+|---|---|
+| `openrouter` | The official OpenRouter Python SDK. Both billed calls (transcription and speech) go through OpenRouter, the course's access route (§7), with the same key the chatbot already uses. One SDK and one key for chat, transcription, and speech. |
+| `pytest`, `ruff` | Development only: the no-key tests and the linter. Not deployed. |
+
+The word error rate is computed in our own code (a word-level edit distance, ~20 lines), not with a package such as `jiwer`: the checker is the thing under test, and it must be readable.
+
+### 12.2 Component: transcriber
+
+- **Language decision:** Python, for the same reasons as §5: one language end to end, and the transcriber is imported by the server route. *Alternative:* transcribing in the browser's JavaScript, rejected because that would put the key in the page.
+- **Model decision:** default **`openai/whisper-large-v3-turbo`** through OpenRouter's transcription endpoint. Comparison: **`elevenlabs/scribe-v2`**. Both run on every clip, the three course clips and my own. The default stays unless the comparison model gets my name or the course number right on a clip where Whisper does not, and that is weighed against cost in `CHECKS.md`.
+- **Records per clip:** the transcript text, the audio seconds and the cost (both read from the reply's usage), the seconds the call took, and the model ID.
+
+### 12.3 Component: speaker
+
+- **Language decision:** Python, the same module tree as the transcriber.
+- **Model decision:** default **`microsoft/mai-voice-2.1-flash`** with the voice **`en-IN-Priya:MAI-Voice-2.1-Flash`**. Comparison: **`elevenlabs/eleven-v4-turbo`** with the voice **`george`**.
+- **Records per answer:** the characters sent, the bytes of audio returned, the estimated cost, the seconds the call took, and the model and voice.
+- **Why the cost is estimated:** the speech reply is raw audio bytes with no usage body. The cost is the characters times the model's published per-character price, and the actual charge appears only in the OpenRouter account's activity.
+
+### 12.4 Behaviors
+
+1. **Empty transcript.** An empty or whitespace-only transcript is a *failed transcript*: it is reported (WER = 1.0, every must-survive word missing), never raised as an exception.
+2. **Short transcript.** A transcript under three words is not answered. `/api/voice` returns the transcript and the message "I didn't catch that", and makes no answer call and no speech call.
+3. **The reply must be audio.** A speech reply whose content type is not `audio/*`, or whose bytes do not start with an audio header (`RIFF`…`WAVE`, `ID3`, or an MPEG frame sync), is an error carrying the reply's text. It is never written to disk or returned as audio. A JSON reply usually means the model does not have the requested voice.
+4. **Word error rate.** The transcript is compared with expected text written by a person before the model heard the clip (`voice/clips/expected.json`). Both are lowercased, stripped of punctuation, and split on whitespace, and WER is (substitutions + deletions + insertions) / expected word count. A perfect transcript scores 0, and one substituted word in thirteen scores 1/13. The **tolerance is 0.15**. A looser tolerance on one clip is allowed only with a written reason in that clip's entry.
+5. **Must-survive words.** Each clip lists the words that must survive, always including **Kuany** and **CPSC 415**, plus Vesoko, Clasona, or Kubernetes where the clip says them. Each is checked separately from the WER: a word is present if it appears in the transcript once both are lowercased and their spaces removed (so "CPSC415" and "cpsc 415" both count). A different word, or a number read out as words ("four fifteen"), is a miss. A miss is reported even when the WER is within tolerance.
+6. **Spoken answer shape.** The spoken text is the typed answer function's output, called with a spoken-style instruction: at most three sentences, plain text. Code then enforces the shape. It strips markdown (headings, emphasis, list markers, code), removes URLs, and keeps at most the first three sentences. The shaping code may only remove text, never add it.
+7. **The refuse-to-fabricate rule applies aloud.** When the profile does not cover the question, the spoken answer says so ("My profile doesn't say"). For a "not yet" item it says "not yet" and gives the reason. Nothing is spoken that the typed path would not say.
+8. **The key stays on the server.** `OPENROUTER_API_KEY` is read from the environment (locally from the shell, deployed from Vercel's environment variables). The browser sends only the audio bytes, with their content type, to `/api/voice`. No key, model ID, or OpenRouter URL appears in the page.
+9. **Request limits.** The page stops recording at 15 seconds. The server refuses a body over 4 MB with 413, and a content type it does not map to a format (WAV, WebM, MP3, OGG, MP4/M4A) with 415. The cap is 4 MB, not the course example's 10 MB, because Vercel rejects request bodies over 4.5 MB before our code runs. A 15-second recording is well under 4 MB.
+10. **Response shape.** `/api/voice` returns JSON with `transcript`, `answer`, `audio` (base64), and `costs` (`transcribe`, `answer`, `speak`, `total`). The page shows "You said: …" above the answer, so a misheard name is visible to the visitor.
+11. **Billed calls are bounded.** One transcription per clip, one speech call per answer, and no model call inside a loop of tests. Tests that call a model are skipped when `OPENROUTER_API_KEY` is not set.
+12. **Fixture clips are WAV.** MP3 headers can cut a transcript short. The answer key is written by me before the model hears a clip; the guard protects it, and the agent does not edit it.
+
+### 12.5 Cost
+
+One voice turn is three charges: transcription (from the reply's usage), the answer (input and output tokens times the price, as in §8.2), and speech (estimated, §12.3). The intent's estimate is about half a cent per turn on the class models. The measured total from one real turn goes in `voice/CHECKS.md` ("One turn") and becomes the per-turn cost in the hosting decision before November 30.
+
+### 12.6 Not in scope
+
+Streaming or real-time conversation, voice cloning, and automatic grading of the live answer's honesty (my judgment, recorded in `CHECKS.md`). See `intent/voice.md`.

@@ -1,7 +1,7 @@
 # Intent: a spoken interface for the portfolio chatbot (Week 7)
 
 > **Owner:** Kuany Kuany
-> **Approved by:** _(Kuany kuany , 10/11/2026)_
+> **Approved by:** Kuany Kuany, 2026-11-10
 
 ## What it is
 
@@ -56,7 +56,7 @@ showing the transcript (item 1) is how the rest is made visible.
 - One voice turn costs about half a cent on the class models; the measured
   per-turn cost goes into the hosting decision in `spec.md`.
 - The page stops recording automatically at **15 seconds**.
-- The server refuses bodies over **10 MB** and audio types it does not know
+- The server refuses bodies over **4 MB** (Vercel's own limit is 4.5 MB) and audio types it does not know
   (415), so a held button or a bad upload cannot run up the bill.
 
 ## Done means
