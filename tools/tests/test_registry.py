@@ -150,3 +150,10 @@ def test_run_tool_reaches_the_github_tool(monkeypatch):
     monkeypatch.setattr(github_tool, "_fetch", fake_fetch(COMMITS))
     r = run_tool("recent_commits", json.dumps({"repo": "portfolio", "count": 1}))
     assert r["found"] and r["commits"][0]["sha"] == "abcdef1"
+
+
+def test_an_empty_repository_is_found_with_no_commits():
+    """GitHub answers 409 for a repository with no commits. Added after the eval: softwaredesign310
+    came back found with no commits, and this branch had no test."""
+    assert recent_commits("softwaredesign310", fetch=fake_fetch(status=409)) == {
+        "repo": "Kuany4953/softwaredesign310", "found": True, "commits": []}
