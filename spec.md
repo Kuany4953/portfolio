@@ -423,3 +423,59 @@ One voice turn is three charges: transcription (from the reply's usage), the ans
 ### 12.6 Not in scope
 
 Streaming or real-time conversation, voice cloning, and automatic grading of the live answer's honesty (my judgment, recorded in `CHECKS.md`). See `intent/voice.md`.
+
+---
+
+## 13. Week 8: one tool
+
+Source: `intent/tools.md` (approved). The chatbot gets one real tool, `recent_commits`, and one held tool, `request_intro`. The model asks for a tool, our code decides, and the result goes back to the model as the next message. Everything lives in `tools/`. The typed path (`/api/ask`) and the voice path (`/api/voice`) both reach it through the same answer function, `voice/answer.py`.
+
+The profile stays where it is: it is still the course example (Sam Rivera), as §12 records. The tool reads Kuany Kuany's public repositories (`Kuany4953`). `tools/CHECKS.md` says so, and my profile replaces the example before November 30.
+
+### 13.1 Dependencies
+
+No new package. GitHub's REST API is called with the standard library (`urllib.request`), the same way the course's `github_tool.py` does. `openrouter` (§12.1) carries the chat calls with `tools`, and `pytest` and `ruff` stay development-only.
+
+### 13.2 Component: the tool loop (`tools/`)
+
+- **Language decision:** Python, the same module tree as the chatbot (§5), so `voice/answer.py` imports it directly and the Vercel function needs nothing new. *Alternative:* a JavaScript function next to the page, rejected because the answer function, its tests and the key handling are already Python.
+- **Model decision:**
+  - **Default:** `minimax/minimax-m3`, with its hidden reasoning left on.
+  - **Comparison:** `xiaomi/mimo-v2.6-flash`, with reasoning off (`{"enabled": false}`). Week 5 showed it returns nothing otherwise.
+  - Both are the class models, and both support tool calling. The course example's run on November 2 shows both calling tools correctly.
+  - Once tools are on, this replaces the chatbot's Week 7 default of `anthropic/claude-haiku-5.5` for the answer call. Haiku stays available through `CHAT_MODEL`.
+  - The eval runs every question on both models. The default stays unless the comparison model passes more questions at no more than twice the cost.
+
+### 13.3 Behaviors
+
+1. **The schema the model sees.** Every chat call sends `tools`: two function schemas, each a name, a description written as an instruction, and JSON Schema arguments.
+   - `recent_commits`
+     - **Description:** "The most recent commits in one of Kuany Kuany's public GitHub repositories (owner Kuany4953). Call this before saying anything about what Kuany has worked on lately or about any repository. Only Kuany4953's repositories are available."
+     - **Arguments:** `repo` (string, required: a repository name, or `Kuany4953/name`) and `count` (integer, 1–10, optional, default 5).
+   - `request_intro`
+     - **Description:** "Ask to introduce a visitor to Kuany. Only when the visitor explicitly asks to be introduced and gives an email address. The request is held until Kuany confirms."
+     - **Arguments:** `email` (string, required) and `message` (string, required).
+2. **Arguments are a string, parsed and validated in code.** `arguments` arrives as a JSON string and is parsed with `json.loads`. If it does not parse, isn't an object, misses a required key, has a key the schema doesn't name, has the wrong type, or has an integer outside its range, the call is not run. The tool result is `{"error": "<what was wrong>"}`, the loop continues, and nothing raises.
+3. **An unknown tool is an error result:** `{"error": "unknown tool '<name>'; the tools are [...]"}`. Nothing raises.
+4. **Only my repositories.** `recent_commits` accepts a bare name or `Kuany4953/name` (owner compared case-insensitively). Any other owner, or a name that is not `[A-Za-z0-9_.-]+`, returns an error result without calling GitHub. GitHub 404 becomes `{"error": "no public repository named '<repo>'", "repo": ..., "found": false}`. 403 and 429 become a rate-limit error. A network failure becomes an error result. Success returns `{"repo", "found": true, "commits": [{"sha" (7 characters), "date" (YYYY-MM-DD), "message" (first line, ≤100 characters)}]}`.
+5. **Every result goes back as a `tool` message.** The assistant message carrying the `tool_calls` is appended exactly as the model made it. Then one `{"role": "tool", "tool_call_id": <the call's id>, "content": <JSON result>}` is appended per call, in order, including parallel calls in one reply.
+6. **The step cap.** At most **4** chat calls per question. If the fourth reply still asks for a tool, the loop stops and the answer is the program's sentence: *"I couldn't finish answering that in 4 steps. Please try a simpler question."* The trace records every call, and `stopped_by` is `"cap"`.
+7. **A side effect is held.** `request_intro` is in `SIDE_EFFECTS`. On the model's request it is **not run**. The result is `{"error": "request_intro has a side effect and needs Kuany's confirmation first", "pending": {...}}`, the request is added to the turn's `pending` list, and nothing is written anywhere. If the turn ends with something pending and the answer does not contain "confirm", the program appends: *"Kuany has to confirm before anything is sent."* `run_tool(..., allow_side_effects=True)` exists for a future confirm step; nothing in this week calls it.
+8. **The claim check (plain code)** runs on every answer against the trace and flags:
+   - a 7-character hex string (a SHA) that no tool result returned;
+   - a date that no tool result returned, written as `YYYY-MM-DD` or as a month name and day ("November 14", "Nov 14, 2026");
+   - one of my repositories named in the answer without a successful `recent_commits` result for it. A repository counts as named if the answer has `Kuany4953/<name>`, or the bare name when it is distinctive (it contains `-`, `_`, `.`, or a digit, such as `cpsc415-week05`; plain words like `portfolio` are not matched bare);
+   - a repository the tool said does not exist, named in the answer without a "not found" phrase ("no public repository", "doesn't exist", "does not exist", "couldn't find", "can't find", "not find", "no repository").
+
+   The result is `{"supported": bool, "unsupported": [reasons]}`. A flagged answer is still returned. The flag goes in the trace and the eval, so a person can see it. My repository names come from a static snapshot, `tools/repos.json`.
+9. **The trace is returned with the answer.** The answer function returns `{"answer", "trace", "stopped_by", "cost", "pending", "check", "model"}`. Each trace entry is either `{step, tool, arguments, result, seconds}` or `{step, answer, finish, seconds}`. `/api/ask` and `/api/voice` add `trace`, `pending` and `check` to their JSON. The voice path speaks only the answer.
+10. **Cost per question.** Every tool call costs one more chat call to deliver its result. The loop adds `usage.cost` across all calls of the turn, and the eval records the cost, the steps and the seconds per question per model.
+11. **No model call without a key.** The no-key tests use a scripted fake client and a fake GitHub fetch. The billed eval (`tools/tests/test_eval.py`) is skipped when `OPENROUTER_API_KEY` is unset.
+
+### 13.4 Cost
+
+The intent's estimate is about $0.01 for the whole eval (five questions × two models). A question with a tool costs at least two chat calls. The measured with-tool and without-tool costs per question go into `tools/CHECKS.md`. The difference joins the per-turn cost in the hosting decision (§12.5) before November 30.
+
+### 13.5 Not in scope
+
+Running `request_intro` for real, a confirm step, private repositories, caching GitHub responses, and a claim check that understands meaning (see `tools/CHECKS.md`, "What the check cannot catch").
