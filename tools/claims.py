@@ -11,10 +11,10 @@ from pathlib import Path
 
 REPOS = json.loads((Path(__file__).parent / "repos.json").read_text())
 OWNER = "kuany4953"
-SHA = re.compile(r"(?<![\w-])(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![\w-])", re.I)
+SHA = re.compile(r"(?<![\w-])(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![\w-])", re.IGNORECASE)
 ISO = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
 MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-MONTH_DAY = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b", re.I)
+MONTH_DAY = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b", re.IGNORECASE)
 NOT_FOUND = ("no public repository", "doesn't exist", "does not exist", "couldn't find", "could not find",
              "can't find", "cannot find", "not find", "no repository", "not found")
 
