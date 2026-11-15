@@ -105,7 +105,7 @@ These prove what the real models do on real audio, and what that costs.
 | `tools/repos.json` | A snapshot of my public repository names (`gh repo list Kuany4953`). | §13.3 (8) |
 | `tools/tests/conftest.py` | Puts the repository root on `sys.path`. | — |
 | `tools/tests/test_registry.py` | No-key: schema shape, validation errors, unknown tool, side effect held, owner check, GitHub errors from a fake fetch. | §13.3 (1–4, 7) |
-| `tools/tests/test_loop.py` | No-key, with a scripted `FakeClient`: the six misuse cases. | §13.3 (5–9) |
+| `tools/tests/test_tool_loop.py` | No-key, with a scripted `FakeClient`: the six misuse cases. | §13.3 (5–9) |
 | `tools/tests/test_claims.py` | No-key: what the check flags and what it lets through. | §13.3 (8) |
 | `tools/tests/test_eval.py` | Billed: five questions × two models, skipped without a key, writing `tools/eval-results.json`. | §13.3 (10, 11) |
 | `voice/answer.py` | `answer_turn(client, question, spoken)` → the dict from §13.3 (9). `answer()` keeps returning `(text, cost)` for `voice_turn`. | §13.3 (9) |
@@ -118,7 +118,7 @@ Each step: tests first, run them red, write the code, run them green, stop.
 
 1. **Registry and GitHub tool:** `test_registry.py`, then `github_tool.py` and `registry.py`.
 2. **Claim check:** `test_claims.py`, then `claims.py`.
-3. **Loop:** `test_loop.py` (the six misuse cases), then `tool_loop.py`. Run `ruff check .` and record it. Commit: *Tools: the loop and its misuse cases, tests first.*
+3. **Loop:** `test_tool_loop.py` (the six misuse cases), then `tool_loop.py`. Run `ruff check .` and record it. Commit: *Tools: the loop and its misuse cases, tests first.*
 4. **Into the chatbot:** a no-key test that `answer_turn` returns the trace through a fake client, then the wiring in `answer.py` and `web.py`. The existing voice tests must still pass. Commit: *Tools: one real tool in the chatbot.*
 5. **Billed eval:** `test_eval.py`, run once by hand with the key. The table goes in `CHECKS.md`. Commit: *Tools: five questions on two models.*
 6. **Findings:** the three sections in `CHECKS.md`. Commit, tag `week08-submitted`, push.
