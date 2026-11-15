@@ -3,10 +3,10 @@
 import copy
 from types import SimpleNamespace as NS
 
-import pytest
-
 import answer as answer_mod
+import pytest
 import web
+
 from tools import github_tool
 
 COMMITS = {"repo": "Kuany4953/portfolio", "found": True,

@@ -26,3 +26,15 @@ All runs used `env -u OPENROUTER_API_KEY`: no key, no network (GitHub is faked),
   - **FURB167**, twice: `re.I` instead of `re.IGNORECASE` in `tools/claims.py`. Fixed with `--fix`.
   - **PIE810** in `.claude/hooks/guard.py:28`: "call startswith once with a tuple". That is the Week 5 guard hook, not this week's code. I left it unchanged, because the hook's behavior is what the guard tests rely on.
 - **Now:** 1 finding, the pre-existing PIE810 in the hook. `tools/` is clean.
+
+## Step 4: the tool in the chatbot
+
+- **Red:** `voice/tests/test_answer_tools.py`, 6 failed (`answer_turn` and `ask_payload` did not exist).
+- **Green:** 6 passed; with the full suite, `pytest tools/tests voice/tests` gives **143 passed**.
+
+**What changed:**
+- `voice/answer.py` now sends every question through `tools.tool_loop.run`, capped at **4 steps**. `answer_turn()` returns the answer with its `trace`, `pending`, `check`, `cost` and `stopped_by`. `answer()` still returns `(text, cost)`, which is what `voice_turn` expects.
+- `voice/web.py`: `/api/ask` (`ask_payload`) and `/api/voice` (`run_voice`) both add `trace`, `pending` and `check` to their JSON. The voice path speaks only the answer.
+- The default chat model is now `minimax/minimax-m3` (spec §13.2). `CHAT_MODEL` can still select Haiku.
+
+**Ruff on the new code:** RUF100 (an unused `noqa: E402`) and I001 (import order) in the new files. Both were fixed with `--fix`. The pre-existing PIE810 in the hook remains.

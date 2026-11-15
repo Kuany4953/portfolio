@@ -10,7 +10,7 @@ import tempfile
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
-from answer import answer
+from answer import answer_turn
 from loop import MAX_BODY, Refused, check_request, voice_turn
 from speak import speak
 from transcribe import transcribe
@@ -27,16 +27,31 @@ def client():
     return OpenRouter(api_key=key)
 
 
+def ask_payload(c, question: str) -> dict:
+    """The typed path's reply: the answer plus the trace, pending requests and claim check (spec §13.3 9)."""
+    turn = answer_turn(c, question)
+    cost = turn["cost"]
+    return {"transcript": question, "answer": turn["answer"], "audio": None,
+            "costs": {"transcribe": 0, "answer": cost, "speak": 0, "total": cost or 0},
+            "trace": turn["trace"], "pending": turn["pending"], "check": turn["check"]}
+
+
 def run_voice(c, audio: bytes, fmt: str) -> dict:
+    turns = []
+
+    def answer_fn(question):
+        turns.append(answer_turn(c, question, spoken=True))
+        return turns[-1]["answer"], turns[-1]["cost"]
+
     def speak_fn(text):
         with tempfile.TemporaryDirectory() as d:     # Vercel can write only under /tmp
             out = Path(d) / "answer.mp3"
             info = speak(c, text, out)
             return out.read_bytes(), info["cost"]
-    return voice_turn(audio, fmt,
-                      lambda a, f: transcribe(c, a, f),
-                      lambda q: answer(c, q, spoken=True),
-                      speak_fn)
+    result = voice_turn(audio, fmt, lambda a, f: transcribe(c, a, f), answer_fn, speak_fn)
+    turn = turns[-1] if turns else {"trace": [], "pending": [], "check": None}
+    result.update(trace=turn["trace"], pending=turn["pending"], check=turn["check"])
+    return result
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -63,10 +78,7 @@ class Handler(BaseHTTPRequestHandler):
                 question = body.decode("utf-8", "replace").strip()[:MAX_QUESTION]
                 if not question:
                     raise Refused(400, "empty question")
-                text, cost = answer(client(), question)
-                return self.send_json(200, {"transcript": question, "answer": text, "audio": None,
-                                            "costs": {"transcribe": 0, "answer": cost, "speak": 0,
-                                                      "total": cost or 0}})
+                return self.send_json(200, ask_payload(client(), question))
             self.send_json(404, {"error": "not found"})
         except Refused as e:
             self.send_json(e.status, {"error": str(e)})
