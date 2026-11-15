@@ -77,3 +77,34 @@ All runs used `env -u OPENROUTER_API_KEY`: no key, no network (GitHub is faked),
 | Most steps any question took | 3 (Q4) | 2 | **3** |
 
 The whole eval cost **$0.00659**: M3 $0.00565, MiMo $0.00094. MiMo is about 6× cheaper and much faster (0.4–2.7 s against 4–13 s), but it failed the one question where acting matters.
+
+## Misuse cases
+
+| # | Case | No-key test (scripted model) | Seen from a real model in the eval? |
+|---|---|---|---|
+| 1 | Single shot: the result goes back as a `tool` message with the right `tool_call_id` | `test_tool_loop.py::test_single_shot_result_goes_back_as_a_tool_message_with_the_right_id` | **Yes**, on every tool question. Q1 on MiMo: step 1 `recent_commits({"repo":"portfolio","count":5})` → `{"found": true, "commits": [{"sha": "36cb8bd", "date": "2026-11-10", …}]}`, step 2 the answer. |
+| 2 | Bad arguments: the exact error goes back and the loop continues | `test_wrong_argument_name_gets_the_exact_error_and_the_loop_continues`, `test_arguments_that_are_not_json_get_an_error_result`, plus 8 validation tests in `test_registry.py` | No. All 13 real calls were well formed. One near miss: M3 passed `Kuany4953/softwaredesign310` on its retry, which the owner check accepts. |
+| 3 | Unknown tool: an error result listing the tools | `test_a_tool_that_does_not_exist_gets_an_error_result`, `test_registry.py::test_unknown_tool_is_an_error_result_listing_the_tools` | No |
+| 4 | Endless caller: stopped by the cap of 4, and the answer is the program's | `test_a_model_that_asks_forever_is_stopped_by_the_cap_and_the_answer_is_the_programs` (asserts that no fifth call was sent), `test_answer_tools.py::test_the_loop_is_capped_at_four_steps` | No, but the nearest was M3 on Q4: the same lookup twice (3 steps of 4) before answering |
+| 5 | Side effect held: pending, not done | `test_a_side_effect_is_pending_and_does_not_happen`, `test_the_confirm_note_is_not_doubled…`, `test_registry.py::test_side_effect_is_held_and_not_run` | **Yes.** Q5 on M3: step 1 `request_intro({"email":"recruiter@example.com","message":"Visitor … about a summer internship."})` → `{"error": "request_intro has a side effect and needs Kuany's confirmation first", "pending": {…}}`. `pending` had one entry and nothing ran. |
+| 6 | Unsupported claim: flagged by code | `test_an_answer_that_names_what_no_tool_returned_is_flagged`, plus 11 tests in `test_claims.py` | The code flagged **nothing** in the eval. But Q5 on MiMo **was** an unsupported claim ("I've passed your request along" with no tool call), and the code could not see it. See the next section. |
+
+## What the check cannot catch
+
+- **An action that never happened (seen in this eval).** MiMo on Q5 said "I've passed your request along". No tool was called, and `pending` is empty. The claim check looks for SHAs, dates and repository names, and this answer has none of them, so it passed. M3's "I've sent your introduction request", said while the request was being *held*, is the same problem in milder form.
+  - **Evidence that catches it:** the trace. The answer claims something was sent, and `pending` is empty with no `request_intro` call.
+  - The eval caught it with its "must call `request_intro`" rule. A live visitor has no such rule.
+  - **The fix is in code, not a stricter prompt:** the program, not the model, should write the visitor-facing sentence about introductions. If `pending` is non-empty, append "Kuany has to confirm before anything is sent" (already done). If the question asks for an introduction and nothing is pending, replace any "passed along" or "sent" claim with "I couldn't send that; please email Kuany directly."
+  - A keyword rule on "sent" or "passed along" would be brittle; a second model reading the answer against the trace would catch more, at the cost of another call per turn.
+- **A real repository described with things the commits never said.** "cpsc415-week05 is a Kubernetes operator with 2,000 stars" passes, because the repository was looked up and no SHA or date was invented (`test_check_cannot_see_an_invented_description_of_a_real_repo`). The commit messages are the only evidence, so a person, or a second model comparing each sentence with the returned messages, is what would catch it.
+- **Summaries that stretch the evidence.** M3 on Q1 wrote "every one of them is about a voice feature". That is true of the ten messages it saw, but it is the model's reading. Code can check names and dates, not whether a summary is fair.
+- **Dates in other forms** ("last Tuesday", "11/14") are not matched, and plain-word repository names (`portfolio`, `wasil`) are matched only in the `Kuany4953/name` form.
+
+## The cost of a tool
+
+- **The numbers:** a question with a tool cost **$0.00126 on M3** (2–3 chat calls), against **$0.00062** without one: about 2×, as expected, since the second call carries the tool result back. On MiMo it was $0.00029 against $0.00003. MiMo's no-tool answers are so short that a single tool round trip is about 10× the cost.
+- **Per-turn cost for the hosting decision:**
+  - A typed turn on the default model is now about **$0.0013** with a tool, $0.0006 without.
+  - A voice turn (Week 7: $0.0039, mostly speech) becomes about **$0.005** when the question needs the tool. That is about 200 voice questions, or about 800 typed questions with a tool, per dollar on M3.
+  - GitHub adds no money, but it limits volume: 60 requests an hour per address without `GITHUB_TOKEN`. A busy hour of visitors would hit the rate limit before the bill mattered, so the hosting decision needs `GITHUB_TOKEN` in Vercel's environment, or a short cache.
+- **The model decision (spec §13.2):** the default stays `minimax/minimax-m3`. MiMo is 4–6× cheaper, but it passed fewer questions: it invented an introduction it never requested.
